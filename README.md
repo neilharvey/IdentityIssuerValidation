@@ -2,7 +2,7 @@
 
 AAD authentication sample
 
-### Usage
+### Setup
 
 Add App Registration must be created to enable AAD authentication for the app.
 
