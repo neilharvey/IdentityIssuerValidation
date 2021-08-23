@@ -1,29 +1,35 @@
-# Hello AAD
+# Identity Issuer Validation
 
-AAD authentication sample
+Extends Azure AD authentication to allow for a list of allowed tenants to be specified.   Based on the [Azure Samples](https://github.com/Azure-Samples/active-directory-aspnetcore-webapp-openidconnect-v2/blob/master/1-WebApp-OIDC/1-2-AnyOrg/README-1-1-to-1-2.md#how-to-restrict-users-from-specific-organizations-from-signing-in-your-web-app) documentation.
 
-### Setup
+## Usage
 
-Add App Registration must be created to enable AAD authentication for the app.
-
-Via the Azure Portal:
-
-1. Search for Azure Active Directory
-2. Under Manage, select App registrations > New registration
-3. Enter a name for the application
-4. Set the Redirect URI to be https://localhost:44321/signin-oidc
-5. Select Register
-6. Under Manage, select Authentication.
-7. For Front-channel logout URL, enter https://localhost:44321/signout-oidc.
-8. Under Implicit grant and hybrid flows, select ID tokens.
-9. Select Save.
-
-Open appsettings.json and change the configuration to be the following:
+Add an `AllowedTenants` section to your settings.  This can be embedded in the standard AzureAd settings if desired:
 
 ```json
-"Domain": "[Enter the domain of your tenant, e.g. contoso.onmicrosoft.com]",
-"ClientId": "Enter_the_Application_Id_here",
-"TenantId": "common",
+  "AzureAd": {
+    "Instance": "https://login.microsoftonline.com/",
+    "Domain": "[Enter the domain of your tenant, e.g. contoso.onmicrosoft.com]",
+    "ClientId": "Enter_the_Application_Id_here",
+    "TenantId": "common",
+    "CallbackPath": "/signin-oidc",
+    "AllowedTenants": [
+      "GUID1",
+      "GUID2"
+    ]
+  }
 ```
 
-Run the application, then you should be prompted for Microsoft Credentials.
+The GUIDs should be the ids of the tenants authorized to access the application.
+
+After calling `AddMicrosoftIdentityWebApp` in your startup method, chain a call to `AddIssuerValidation`, passing the configuration section which contains the allowed tenants.
+
+```cs
+var configurationSection = Configuration.GetSection("AzureAd");
+services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
+    .AddMicrosoftIdentityWebApp(configurationSection)
+    .AddIssuerValidation(configurationSection);
+
+```
+
+When an unauthorized tenant attempts to access the application, a `SecurityTokenInvalidIssuerException` will be thrown.  This should be handled by the owning application.
