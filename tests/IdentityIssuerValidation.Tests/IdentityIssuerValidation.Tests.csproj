@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\src\IdentityIssuerValidation.csproj" />
+    <ProjectReference Include="..\..\src\IdentityIssuerValidation.csproj" />
   </ItemGroup>
 
 </Project>
